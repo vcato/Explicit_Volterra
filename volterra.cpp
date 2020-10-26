@@ -8,17 +8,20 @@
 #include <iomanip>
 #include <string>
 #include <cassert>
-#include <ranges>
 #include <numeric>
 using namespace std;
-using namespace std::ranges;
 
 
 // Returns factorial of n
 static int fact(int n)
 {
-    std::ranges::iota_view v{1, n+1};
-    return std::accumulate(v.begin(), v.end(), 1, std::multiplies<>());
+    int result = 1;
+
+    for (int i=1; i<=n; ++i) {
+      result *= i;
+    }
+
+    return result;
 }
 
 
@@ -72,7 +75,12 @@ ar(
         std:: string& base
 )
 {
-    return del*kernel(r,  k,  t,  theta,  c,  sig,  del, base);
+    auto a =
+        [&](int r){
+          return del*kernel(r,  k,  t,  theta,  c,  sig,  del, base);
+        };
+
+    return a(r);
 }
 
 double volterra::rect(double t, double low, double up){
