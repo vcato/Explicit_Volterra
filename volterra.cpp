@@ -38,13 +38,13 @@ static double my_fct(double t, double a, double k){
 
 static double
 kernel(
-        int r,
+        int /*r*/,
         double k,
         double t,
         double theta,
         double c,
         double sig,
-        double del,
+        double /*del*/,
         std:: string& base
 )
 {
@@ -63,23 +63,9 @@ kernel(
 }
 
 
-static double
-ar(
-        int r,
-        double k,
-        double t,
-        double theta,
-        double c,
-        double sig,
-        double del,
-        std:: string& base
-)
+template <typename A>
+static double ar(int r, const A &a)
 {
-    auto a =
-        [&](int r){
-          return del*kernel(r,  k,  t,  theta,  c,  sig,  del, base);
-        };
-
     return a(r);
 }
 
@@ -107,6 +93,11 @@ volterra::beta(
     double value = 0;
     int l;
 
+    auto a =
+        [&](int r){
+          return del*kernel(r,  k,  t,  theta,  c,  sig,  del, base);
+        };
+
     if (n=0, r=0){
         return 1;
     }
@@ -114,14 +105,14 @@ volterra::beta(
         return 0;
     }
     else if (n=1, r>=0){
-        return ar(r,k,t,theta,c,sig,del,base);
+        return ar(r,a);
     }
     else {
         for (l = 0; l <= n; l++)
         {
             value +=
                     beta(n,r,k,t,theta,c,sig,del,base) +
-                    ar(l,k,t,theta,c,sig,del,base)*beta(n-l,r,k,t,theta,c,sig,del,base);
+                    ar(l,a)*beta(n-l,r,k,t,theta,c,sig,del,base);
         }
 
         // lacking an argument, also need to incorporate kernel

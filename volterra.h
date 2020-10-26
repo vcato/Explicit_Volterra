@@ -29,6 +29,6 @@ namespace volterra {
 
     void norms(double* x, int n, double& norm1, double& norminf);
 
-};
+}
 
 #endif //EXPLICIT_VOLTERRA_VOLTERRA_H
