@@ -3,8 +3,36 @@
 #include <cmath>
 #include <iomanip>
 #include <string>
+#include <cassert>
 
 using namespace std;
+
+static double
+kernel(
+        int /*r*/,
+        double k,
+        double t,
+        double theta,
+        double c,
+        double sig,
+        double /*del*/,
+        std:: string& base
+)
+{
+    if(base== "PL"){
+       // return k*theta*pow(c,theta)/(pow((c+(r+1)*del),(1+theta)));
+        return k*theta*pow(c,theta)/(pow((c+t),(1+theta)));
+    }
+    else if (base=="Exp"){
+        return k*theta*exp(-theta*t);
+    }
+    else if (base=="RL"){
+        return (k*t/(pow(sig,2)))*exp(-t*t/(2*pow(sig,2)));
+    }
+
+    assert(false); // shouldn't happen
+}
+
 
 int main() {
     using volterra::rect;
@@ -62,8 +90,13 @@ int main() {
 
     for (int n=1; n<nn+1; n++){
         for (double m=0; m<n; m++){
-            sum1 += beta(n,m,k,t,theta,c,sig,del,base)* series(n,t-m);
-            sum2 += (1/del)*beta(n,m,k,t*(1/del),theta,c,sig,del,base)*(1/del)*series(n,t-m);
+            auto a =
+              [&](int r, double t){
+                return del*kernel(r,  k,  t,  theta,  c,  sig,  del, base);
+              };
+
+            sum1 += beta(n,m,a,t)* series(n,t-m);
+            sum2 += (1/del)*beta(n,m,a,t*(1/del))*(1/del)*series(n,t-m);
             cout << setw(12) << nn << setw(12) << n << setw(12) << m << setw(13)<< rect(t, 0.1, 9.9)
                  << setw(18) << series(n,t) << setw(18) << sum1 << setw(18) << sum2 << setw(18) << findError(sum2,sum1);
             cout << endl;

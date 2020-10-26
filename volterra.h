@@ -6,6 +6,8 @@
 #define EXPLICIT_VOLTERRA_VOLTERRA_H
 
 #include <string>
+#include <functional>
+
 
 namespace volterra {
     double impul(double t);
@@ -18,13 +20,8 @@ namespace volterra {
     beta(
             int n,
             int r,
-            double k,
-            double t,
-            double theta,
-            double c,
-            double sig,
-            double del,
-            std:: string& base
+            std::function<double(int r, double t)> a,
+            double t
     );
 
     void norms(double* x, int n, double& norm1, double& norminf);

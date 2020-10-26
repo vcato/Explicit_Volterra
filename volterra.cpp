@@ -36,37 +36,10 @@ static double my_fct(double t, double a, double k){
 }
 
 
-static double
-kernel(
-        int /*r*/,
-        double k,
-        double t,
-        double theta,
-        double c,
-        double sig,
-        double /*del*/,
-        std:: string& base
-)
-{
-    if(base== "PL"){
-       // return k*theta*pow(c,theta)/(pow((c+(r+1)*del),(1+theta)));
-        return k*theta*pow(c,theta)/(pow((c+t),(1+theta)));
-    }
-    else if (base=="Exp"){
-        return k*theta*exp(-theta*t);
-    }
-    else if (base=="RL"){
-        return (k*t/(pow(sig,2)))*exp(-t*t/(2*pow(sig,2)));
-    }
-
-    assert(false); // shouldn't happen
-}
-
-
 template <typename A>
-static double ar(int r, const A &a)
+static double ar(int r, double t, const A &a)
 {
-    return a(r);
+    return a(r, t);
 }
 
 double volterra::rect(double t, double low, double up){
@@ -81,22 +54,12 @@ double
 volterra::beta(
         int n,
         int r,
-        double k,
-        double t,
-        double theta,
-        double c,
-        double sig,
-        double del,
-        std:: string& base
+        std::function<double(int r, double t)> a,
+        double t
 )
 {
     double value = 0;
     int l;
-
-    auto a =
-        [&](int r){
-          return del*kernel(r,  k,  t,  theta,  c,  sig,  del, base);
-        };
 
     if (n=0, r=0){
         return 1;
@@ -105,14 +68,12 @@ volterra::beta(
         return 0;
     }
     else if (n=1, r>=0){
-        return ar(r,a);
+        return ar(r,t,a);
     }
     else {
         for (l = 0; l <= n; l++)
         {
-            value +=
-                    beta(n,r,k,t,theta,c,sig,del,base) +
-                    ar(l,a)*beta(n-l,r,k,t,theta,c,sig,del,base);
+            value += beta(n,r,a,t) + ar(l,t,a)*beta(n-l,r,a,t);
         }
 
         // lacking an argument, also need to incorporate kernel
